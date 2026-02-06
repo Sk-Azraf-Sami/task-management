@@ -1,98 +1,233 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+## Project Idea: **Task Management & Team Collaboration Platform**
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This project will give you hands-on experience with all NestJS concepts while building something practical and feature-rich.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## **Core Features & NestJS Topics Covered**
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### **1. User Management & Authentication**
+**Features:**
+- User registration and login
+- Email verification
+- Password reset flow
+- Role-based access (Admin, Manager, Member)
+- JWT authentication with refresh tokens
+- OAuth2 integration (Google, GitHub)
 
-## Project setup
+**Topics Covered:**
+- Controllers, Services, Modules
+- Guards (Authentication, Authorization)
+- Decorators (custom decorators)
+- Passport strategies
+- Exception filters
+- Pipes (validation)
 
-```bash
-$ npm install
+### **2. Project & Task Management**
+**Features:**
+- Create/update/delete projects
+- Assign team members to projects
+- Create tasks with priorities, deadlines, labels
+- Task assignment and reassignment
+- Task comments and activity log
+- File attachments for tasks
+- Task dependencies
+
+**Topics Covered:**
+- Database integration (Prisma)
+- Relations and complex queries
+- DTOs (Data Transfer Objects)
+- Class-validator
+- Query builders
+- Transactions
+
+### **3. Real-time Notifications & Chat**
+**Features:**
+- Real-time task updates
+- Team chat rooms per project
+- Direct messaging
+- Notification preferences
+- Online/offline status
+
+**Topics Covered:**
+- WebSockets (Gateway)
+- WebSocket guards
+- WebSocket exception filters
+- Server-Sent Events (SSE)
+
+### **4. File Management**
+**Features:**
+- Upload task attachments
+- User avatars
+- File storage (local & cloud)
+- Image optimization
+- Download with authentication
+
+**Topics Covered:**
+- File upload (Multer)
+- Interceptors
+- Streams
+- Middleware
+
+### **5. Reporting & Analytics**
+**Features:**
+- Project progress dashboards
+- Team productivity reports
+- Task completion statistics
+- Export reports (PDF, CSV)
+- Time tracking per task
+
+**Topics Covered:**
+- Scheduled tasks (Cron jobs)
+- Task scheduling
+- Queue management (Bull)
+- Background jobs
+- Caching (Redis)
+
+### **6. Search & Filtering**
+**Features:**
+- Full-text search for tasks and projects
+- Advanced filtering (by status, priority, assignee, date range)
+- Saved search filters
+- Elasticsearch integration
+
+**Topics Covered:**
+- Query parameters
+- Custom providers
+- Dynamic modules
+- Elasticsearch module
+
+### **7. API Documentation**
+**Features:**
+- Interactive API documentation
+- Request/response examples
+- Authentication documentation
+
+**Topics Covered:**
+- Swagger/OpenAPI
+- API versioning
+- CORS configuration
+
+### **8. Email System**
+**Features:**
+- Welcome emails
+- Task assignment notifications
+- Daily digest emails
+- Custom email templates
+
+**Topics Covered:**
+- Email integration (Nodemailer)
+- Template engines (Handlebars)
+- Queue-based email sending
+
+### **9. Audit & Logging**
+**Features:**
+- Activity logs for all actions
+- Error tracking
+- Performance monitoring
+- Request logging
+
+**Topics Covered:**
+- Logging (Winston/Pino)
+- Custom loggers
+- Global exception filters
+- Health checks
+
+### **10. Testing Suite**
+**Features:**
+- Unit tests for services
+- Integration tests for controllers
+- E2E tests for critical flows
+
+**Topics Covered:**
+- Unit testing (Jest)
+- E2E testing
+- Test modules
+- Mocking
+
+### **11. Advanced Features**
+**Features:**
+- Rate limiting for API endpoints
+- Request throttling
+- Database migrations
+- Seeding initial data
+- Multi-tenancy support
+- Soft deletes
+
+**Topics Covered:**
+- Rate limiting/Throttling
+- Database migrations (Prisma)
+- Configuration module (env variables)
+- Validation schemas
+- Custom pipes
+- Lifecycle hooks
+
+### **12. GraphQL API (Optional Bonus)**
+**Features:**
+- GraphQL endpoint alongside REST
+- Queries and mutations
+- Subscriptions for real-time updates
+
+**Topics Covered:**
+- GraphQL module
+- Resolvers
+- GraphQL guards
+- Subscriptions
+
+---
+
+## **Database Schema (Prisma)**
+
+**Main Models:**
+- User (id, email, password, role, avatar, preferences)
+- Project (id, name, description, status, createdBy, teamId)
+- Task (id, title, description, status, priority, projectId, assigneeId, dueDate)
+- Comment (id, content, taskId, userId, createdAt)
+- Attachment (id, filename, url, taskId, uploadedBy)
+- Team (id, name, description)
+- TeamMember (userId, teamId, role)
+- Notification (id, userId, type, content, isRead)
+- ActivityLog (id, action, entityType, entityId, userId, timestamp)
+- ChatMessage (id, content, senderId, receiverId, projectId, createdAt)
+
+---
+
+## **Project Structure**
+
+```
+src/
+├── auth/               # Authentication module
+├── users/              # User management
+├── projects/           # Project management
+├── tasks/              # Task management
+├── comments/           # Comments module
+├── teams/              # Team management
+├── notifications/      # Notification system
+├── chat/               # Real-time chat
+├── files/              # File upload/management
+├── reports/            # Analytics & reports
+├── search/             # Search functionality
+├── email/              # Email service
+├── common/             # Shared utilities
+│   ├── decorators/
+│   ├── guards/
+│   ├── filters/
+│   ├── interceptors/
+│   ├── pipes/
+│   └── middleware/
+├── config/             # Configuration
+├── database/           # Database module
+└── main.ts
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## **Learning Path**
 
-# watch mode
-$ npm run start:dev
+1. **Start with basics:** Users, Auth, Projects modules
+2. **Add complexity:** Tasks, Comments, File uploads
+3. **Real-time features:** WebSockets, Notifications
+4. **Advanced topics:** Caching, Queues, Scheduled tasks
+5. **Production readiness:** Testing, Logging, Documentation
 
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project will take you from beginner to advanced NestJS developer while covering every major topic in the official documentation!
