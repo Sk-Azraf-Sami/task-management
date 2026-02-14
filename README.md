@@ -1,3 +1,4 @@
+
 ## Project Idea: **Task Management & Team Collaboration Platform**
 
 This project will give you hands-on experience with all NestJS concepts while building something practical and feature-rich.
@@ -231,3 +232,62 @@ src/
 5. **Production readiness:** Testing, Logging, Documentation
 
 This project will take you from beginner to advanced NestJS developer while covering every major topic in the official documentation!
+
+---
+
+## How to Run 
+
+Follow the steps below to run the project locally.
+
+###  Prerequisites
+
+Make sure you have installed:
+
+* Nest CLI
+* Docker & Docker Compose
+
+---
+
+1. **Install Nest CLI (if not installed)**
+
+   ```bash
+   npm i -g @nestjs/cli
+   ```
+
+2. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/Sk-Azraf-Sami/task-management.git
+   cd task-management
+   ```
+
+3. **Create environment file**
+
+   * Create a `.env` file in the root directory
+   * Copy the contents of `.env.example` into `.env`
+
+4. **Create Docker network**
+
+   ```bash
+   docker network create task-management-nest-net
+   ```
+
+5. **Start the containers**
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+6. **Open the application**
+
+   ```
+   http://localhost:8000
+   ```
+
+7. **Stop the Project**
+
+```bash
+docker compose down
+```
+
+
