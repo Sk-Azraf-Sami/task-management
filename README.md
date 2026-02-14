@@ -286,8 +286,8 @@ Make sure you have installed:
 
 7. **Stop the Project**
 
-```bash
-docker compose down
-```
+    ```bash
+    docker compose down
+    ```
 
 
