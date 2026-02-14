@@ -1,0 +1,67 @@
+networks:
+  task-management-nest-net:
+    external: true
+
+services:
+  
+  backend:
+    image: ${COMPOSE_PROJECT_NAME}_backend:${BACKEND_SERVICE_BUILD_MODE}
+    build:
+      context: ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}
+      dockerfile: ./docker/Dockerfile
+      target: local
+      args:
+        - PORT=${PORT}
+        - ROOT_CODES_PATH=${ROOT_CODES_PATH}
+    container_name: task-management-nest-backend
+    restart: unless-stopped
+    env_file:
+      - ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}/docker/.env
+    ports:
+      - ${CONTAINER_PORT}:${PORT}
+    volumes:
+      - ${ROOT_CODES_PATH}:/usr/src/app
+      - ${ROOT_CODES_PATH}/node_modules:/usr/src/app/node_modules
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run start:dev"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-backend-service
+
+  db:
+    image: pgvector/pgvector:pg${POSTGRES_IMAGE_TAG_VERSION}
+    container_name: task-management-nest-db
+    restart: always
+    mem_limit: 1g
+    ports:
+      - ${DB_POSTGRES_PORT}:5432
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+    volumes:
+      - /var/lib/postgresql/be/data:/var/lib/postgresql/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-db
+
+  db-adminer:
+    image: adminer
+    container_name: task-management-nest-db-adminer
+    restart: unless-stopped
+    links:
+      - db:db
+    ports:
+      - ${DB_ADMINER_PORT}:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-db-adminer
