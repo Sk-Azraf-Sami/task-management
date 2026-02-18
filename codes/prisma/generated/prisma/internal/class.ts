@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.4.0",
   "engineVersion": "ab56fe763f921d033a6c195e7ddeb3e255bdbb57",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider   = \"prisma-client\"\n  output     = \"./generated/prisma\"\n  engineType = \"client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum Role {\n  ADMIN\n  MANAGER\n  MEMBER\n}\n\nmodel User {\n  id                     String    @id @default(uuid())\n  email                  String    @unique\n  password               String?\n  firstName              String?\n  lastName               String?\n  role                   Role      @default(MEMBER)\n  isEmailVerified        Boolean   @default(false)\n  emailVerificationToken String?\n  resetPasswordToken     String?\n  resetPasswordExpires   DateTime?\n  refreshToken           String?\n  googleId               String?   @unique\n  githubId               String?   @unique\n  createdAt              DateTime  @default(now())\n  updatedAt              DateTime  @updatedAt\n\n  @@map(\"users\")\n}\n",
+  "inlineSchema": "generator client {\n  provider     = \"prisma-client\"\n  output       = \"./generated/prisma\"\n  engineType   = \"client\"\n  moduleFormat = \"cjs\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nenum Role {\n  ADMIN\n  MANAGER\n  MEMBER\n}\n\nmodel User {\n  id                     String    @id @default(uuid())\n  email                  String    @unique\n  password               String?\n  firstName              String?\n  lastName               String?\n  role                   Role      @default(MEMBER)\n  isEmailVerified        Boolean   @default(false)\n  emailVerificationToken String?\n  resetPasswordToken     String?\n  resetPasswordExpires   DateTime?\n  refreshToken           String?\n  googleId               String?   @unique\n  githubId               String?   @unique\n  createdAt              DateTime  @default(now())\n  updatedAt              DateTime  @updatedAt\n\n  @@map(\"users\")\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -45,10 +45,10 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs"),
+  getRuntime: async () => await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs")
+    const { wasm } = await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.js")
     return await decodeBase64AsWasm(wasm)
   },
 
