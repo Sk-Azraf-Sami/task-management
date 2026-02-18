@@ -13,6 +13,7 @@ COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 COPY --from=dependencies /usr/src/app/package.json ./
 COPY --from=dependencies /usr/src/app/package-lock.json ./
 COPY ${ROOT_CODES_PATH} ./
+RUN npx prisma generate
 RUN npx nest build
 
 # stage-3 : production-base
