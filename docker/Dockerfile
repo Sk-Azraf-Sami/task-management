@@ -31,4 +31,4 @@ EXPOSE $CONTAINER_PORT
 
 # stage-4 : local development
 FROM production-base AS local
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
