@@ -11,19 +11,19 @@ services:
       dockerfile: ./docker/Dockerfile
       target: local
       args:
-        - PORT=${PORT}
+        - PORT=${CONTAINER_PORT}
         - ROOT_CODES_PATH=${ROOT_CODES_PATH}
     container_name: task-management-nest-backend
     restart: unless-stopped
     env_file:
       - ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}/docker/.env
     ports:
-      - ${CONTAINER_PORT}:${PORT}
+      - ${PORT}:${CONTAINER_PORT}
     volumes:
       - ${ROOT_CODES_PATH}:/usr/src/app
       - ${ROOT_CODES_PATH}/node_modules:/usr/src/app/node_modules
     working_dir: /usr/src/app
-    command: sh -c "npm install && npx prisma generate && npm run start:dev"
+    command: sh -c "npm install && npm run start:dev"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

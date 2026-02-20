@@ -2,7 +2,7 @@ import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from "class-validato
 import { Role } from "src/common/enums/role.enum";
 
 export class RegisterDto {
-    @IsEmail()
+    @IsEmail({}, { message: "Please provide a valid email address" })
     email: string; 
 
     @IsString()
