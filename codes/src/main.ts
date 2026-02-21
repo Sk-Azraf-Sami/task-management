@@ -8,7 +8,7 @@ async function bootstrap() {
   app.enableShutdownHooks();
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  const port = Number(process.env.CONTAINER_PORT ?? process.env.PORT ?? 5000);
+  const port = Number(process.env.CONTAINER_PORT ?? 5000);
   await app.listen(port, '0.0.0.0');
 }
 bootstrap();
