@@ -18,6 +18,7 @@ RUN npx nest build
 # stage-3 : production-base
 FROM node:24-slim AS production-base
 WORKDIR /usr/src/app
+ARG CONTAINER_PORT
 ARG ROOT_CODES_PATH
 COPY ${ROOT_CODES_PATH}/package.json ./
 COPY --from=dependencies /usr/src/app/package-lock.json ./
@@ -32,3 +33,17 @@ EXPOSE $CONTAINER_PORT
 # stage-4 : local development
 FROM production-base AS local
 CMD ["node", "dist/src/main.js"]
+
+# stage-5 : dev (hot reload)
+FROM node:24-slim AS dev
+WORKDIR /usr/src/app
+ARG CONTAINER_PORT
+ARG ROOT_CODES_PATH
+
+COPY ${ROOT_CODES_PATH}/package.json ${ROOT_CODES_PATH}/package-lock.json ./
+RUN npm ci
+
+COPY ${ROOT_CODES_PATH} ./
+
+EXPOSE $CONTAINER_PORT
+CMD ["npm", "run", "start:dev:docker"]

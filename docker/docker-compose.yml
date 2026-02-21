@@ -9,21 +9,21 @@ services:
     build:
       context: ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}
       dockerfile: ./docker/Dockerfile
-      target: local
+      target: dev
       args:
         - CONTAINER_PORT=${CONTAINER_PORT}
         - ROOT_CODES_PATH=${ROOT_CODES_PATH}
     container_name: task-management-nest-backend
+    init: true
     restart: unless-stopped
     env_file:
       - ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}/docker/.env
     ports:
       - ${PORT}:${CONTAINER_PORT}
     volumes:
-      - ${ROOT_CODES_PATH}:/usr/src/app
-      - ${ROOT_CODES_PATH}/node_modules:/usr/src/app/node_modules
+      - ${ROOT_CODES_PATH}/src:/usr/src/app/src
     working_dir: /usr/src/app
-    command: sh -c "npm install && npm run start:dev"
+    command: npm run start:dev:docker
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
