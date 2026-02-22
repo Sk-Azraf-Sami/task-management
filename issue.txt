@@ -1,0 +1,464 @@
+What works: 
+When I start the application using Docker, it runs smoothly without any problems.
+
+The issue
+If I modify the code while the container is running (during development with hot reload), I get the following error:
+
+[Nest] 54  - 02/20/2026, 2:31:24 PM   ERROR [NestApplication] Error: listen EADDRINUSE: address already in use :::5000
+
+Error: listen EADDRINUSE: address already in use :::5000
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at ExpressAdapter.listen (/usr/src/app/node_modules/@nestjs/platform-express/adapters/express-adapter.js:127:32)
+    at /usr/src/app/node_modules/@nestjs/core/nest-application.js:188:30
+    at new Promise (<anonymous>)
+    at NestApplication.listen (/usr/src/app/node_modules/@nestjs/core/nest-application.js:178:16)
+    at async bootstrap (/usr/src/app/src/main.ts:10:3) {
+  code: 'EADDRINUSE',
+  errno: -98,
+  syscall: 'listen',
+  address: '::',
+  port: 5000
+}
+
+Node.js v24.13.1
+
+Observations
+* This only happens when running inside Docker.
+* If I run the application locally (without Docker), everything works fine, even after making code changes.
+* The error suggests that port 5000 is already in use, possibly from a previous process that wasn’t cleaned up.
+
+
+Before----------------------------------------------
+networks:
+  task-management-nest-net:
+    external: true
+
+services:
+  
+  backend:
+    image: ${COMPOSE_PROJECT_NAME}_backend:${BACKEND_SERVICE_BUILD_MODE}
+    build:
+      context: ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}
+      dockerfile: ./docker/Dockerfile
+      target: local
+      args:
+        - CONTAINER_PORT=${CONTAINER_PORT}
+        - ROOT_CODES_PATH=${ROOT_CODES_PATH}
+    container_name: task-management-nest-backend
+    restart: unless-stopped
+    env_file:
+      - ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}/docker/.env
+    ports:
+      - ${PORT}:${CONTAINER_PORT}
+    volumes:
+      - ${ROOT_CODES_PATH}:/usr/src/app
+      - ${ROOT_CODES_PATH}/node_modules:/usr/src/app/node_modules
+    working_dir: /usr/src/app
+    command: sh -c "npm install && npm run start:dev"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-backend-service
+
+  db:
+    image: pgvector/pgvector:pg${POSTGRES_IMAGE_TAG_VERSION}
+    container_name: task-management-nest-db
+    restart: always
+    mem_limit: 1g
+    ports:
+      - ${DB_POSTGRES_PORT}:5432
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+    volumes:
+      - /var/lib/postgresql/be/data:/var/lib/postgresql/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-db
+
+  db-adminer:
+    image: adminer
+    container_name: task-management-nest-db-adminer
+    restart: unless-stopped
+    links:
+      - db:db
+    ports:
+      - ${DB_ADMINER_PORT}:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-db-adminer
+          
+          
+# stage-1 : dependencies 
+FROM node:24-slim AS dependencies 
+WORKDIR /usr/src/app 
+ARG ROOT_CODES_PATH 
+COPY ${ROOT_CODES_PATH}/package.json ${ROOT_CODES_PATH}/package-lock.json ./
+RUN npm install --production=false --frozen-lockfile
+
+# stage-2 : builder 
+FROM node:24-slim AS builder 
+WORKDIR /usr/src/app 
+ARG ROOT_CODES_PATH 
+COPY --from=dependencies /usr/src/app/node_modules ./node_modules
+COPY --from=dependencies /usr/src/app/package.json ./
+COPY --from=dependencies /usr/src/app/package-lock.json ./
+COPY ${ROOT_CODES_PATH} ./
+RUN npx nest build
+
+# stage-3 : production-base
+FROM node:24-slim AS production-base
+WORKDIR /usr/src/app
+ARG ROOT_CODES_PATH
+COPY ${ROOT_CODES_PATH}/package.json ./
+COPY --from=dependencies /usr/src/app/package-lock.json ./
+RUN npm install --production=true --frozen-lockfile && npm cache clean --force
+COPY --from=builder /usr/src/app/dist ./dist
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodejs && \
+    chown -R nodejs:nodejs /usr/src/app
+USER nodejs
+EXPOSE $CONTAINER_PORT
+
+# stage-4 : local development
+FROM production-base AS local
+CMD ["node", "dist/src/main.js"]
+
+
+{
+  "name": "task-management",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/src/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
+    "@prisma/adapter-pg": "^7.4.0",
+    "@prisma/client": "^7.4.0",
+    "bcrypt": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "dotenv": "^17.3.1",
+    "pg": "^8.18.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.19.11",
+    "@types/pg": "^8.16.0",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^16.0.0",
+    "jest": "^30.0.0",
+    "nodemon": "^3.1.13",
+    "prettier": "^3.4.2",
+    "prisma": "^7.4.0",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}
+
+
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import 'dotenv/config'
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  await app.listen(process.env.CONTAINER_PORT ?? 5000);
+}
+bootstrap();
+
+
+
+---------------------------------------------------------
+After below changes, this issue is solved and works fine
+After----------------------------------------------------
+networks:
+  task-management-nest-net:
+    external: true
+
+services:
+  
+  backend:
+    image: ${COMPOSE_PROJECT_NAME}_backend:${BACKEND_SERVICE_BUILD_MODE}
+    build:
+      context: ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}
+      dockerfile: ./docker/Dockerfile
+      target: dev
+      args:
+        - CONTAINER_PORT=${CONTAINER_PORT}
+        - ROOT_CODES_PATH=${ROOT_CODES_PATH}
+    container_name: task-management-nest-backend
+    init: true
+    restart: unless-stopped
+    env_file:
+      - ${ROOT_PATH}${BACKEND_SERVICE_VOLUME_DIR_NAME}/docker/.env
+    ports:
+      - ${PORT}:${CONTAINER_PORT}
+    volumes:
+      - ${ROOT_CODES_PATH}/src:/usr/src/app/src
+    working_dir: /usr/src/app
+    command: npm run start:dev:docker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-backend-service
+
+  db:
+    image: pgvector/pgvector:pg${POSTGRES_IMAGE_TAG_VERSION}
+    container_name: task-management-nest-db
+    restart: always
+    mem_limit: 1g
+    ports:
+      - ${DB_POSTGRES_PORT}:5432
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+    volumes:
+      - /var/lib/postgresql/be/data:/var/lib/postgresql/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-db
+
+  db-adminer:
+    image: adminer
+    container_name: task-management-nest-db-adminer
+    restart: unless-stopped
+    links:
+      - db:db
+    ports:
+      - ${DB_ADMINER_PORT}:8080
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      task-management-nest-net:
+        aliases:
+          - task-management-nest-db-adminer
+
+
+# stage-1 : dependencies 
+FROM node:24-slim AS dependencies 
+WORKDIR /usr/src/app 
+ARG ROOT_CODES_PATH 
+COPY ${ROOT_CODES_PATH}/package.json ${ROOT_CODES_PATH}/package-lock.json ./
+RUN npm install --production=false --frozen-lockfile
+
+# stage-2 : builder 
+FROM node:24-slim AS builder 
+WORKDIR /usr/src/app 
+ARG ROOT_CODES_PATH 
+COPY --from=dependencies /usr/src/app/node_modules ./node_modules
+COPY --from=dependencies /usr/src/app/package.json ./
+COPY --from=dependencies /usr/src/app/package-lock.json ./
+COPY ${ROOT_CODES_PATH} ./
+RUN npx nest build
+
+# stage-3 : production-base
+FROM node:24-slim AS production-base
+WORKDIR /usr/src/app
+ARG CONTAINER_PORT
+ARG ROOT_CODES_PATH
+COPY ${ROOT_CODES_PATH}/package.json ./
+COPY --from=dependencies /usr/src/app/package-lock.json ./
+RUN npm install --production=true --frozen-lockfile && npm cache clean --force
+COPY --from=builder /usr/src/app/dist ./dist
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nodejs && \
+    chown -R nodejs:nodejs /usr/src/app
+USER nodejs
+EXPOSE $CONTAINER_PORT
+
+# stage-4 : local development
+FROM production-base AS local
+CMD ["node", "dist/src/main.js"]
+
+# stage-5 : dev (hot reload)
+FROM node:24-slim AS dev
+WORKDIR /usr/src/app
+ARG CONTAINER_PORT
+ARG ROOT_CODES_PATH
+
+COPY ${ROOT_CODES_PATH}/package.json ${ROOT_CODES_PATH}/package-lock.json ./
+RUN npm ci
+
+COPY ${ROOT_CODES_PATH} ./
+
+EXPOSE $CONTAINER_PORT
+CMD ["npm", "run", "start:dev:docker"]
+
+
+{
+  "name": "task-management",
+  "version": "0.0.1",
+  "description": "",
+  "author": "",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "nest build",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:dev:docker": "nodemon -L --watch src --ext ts,js,json --delay 300ms --signal SIGTERM --exec \"nest start\"",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/src/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
+    "@prisma/adapter-pg": "^7.4.0",
+    "@prisma/client": "^7.4.0",
+    "bcrypt": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "dotenv": "^17.3.1",
+    "pg": "^8.18.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.19.11",
+    "@types/pg": "^8.16.0",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^16.0.0",
+    "jest": "^30.0.0",
+    "nodemon": "^3.1.13",
+    "prettier": "^3.4.2",
+    "prisma": "^7.4.0",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
+  }
+}
+
+
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import 'dotenv/config'
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+
+  const port = Number(process.env.CONTAINER_PORT ?? 5000);
+  await app.listen(port, '0.0.0.0');
+}
+bootstrap();
+
+
+-----------------------
+
+My question is which change specially solve this issue? 
